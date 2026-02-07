@@ -25,7 +25,8 @@ def svg_arrow(marker_id: str) -> str:
     return "\n".join(
         [
             f'<marker id="{marker_id}" markerWidth="10" markerHeight="7" '
-            'refX="10" refY="3.5" orient="auto">',
+            'refX="10" refY="3.5" orient="auto" markerUnits="strokeWidth" '
+            'viewBox="0 0 10 7">',
             '<polygon points="0 0, 10 3.5, 0 7" fill="#1F77B4" />',
             "</marker>",
         ]
@@ -54,10 +55,20 @@ def render_svg(graph: nx.DiGraph, positions: NodePosition, output_path: str) -> 
     for source, target in graph.edges:
         x1, y1 = to_canvas(positions[source])
         x2, y2 = to_canvas(positions[target])
+        dx = x2 - x1
+        dy = y2 - y1
+        length = (dx**2 + dy**2) ** 0.5
+        if length:
+            offset_x = dx / length * radius
+            offset_y = dy / length * radius
+        else:
+            offset_x = 0.0
+            offset_y = 0.0
         svg_lines.append(
             "".join(
                 [
-                    f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" ',
+                    f'<line x1="{x1 + offset_x}" y1="{y1 + offset_y}" '
+                    f'x2="{x2 - offset_x}" y2="{y2 - offset_y}" ',
                     'stroke="#1F77B4" stroke-width="2" marker-end="url(#arrow)" />',
                 ]
             )
